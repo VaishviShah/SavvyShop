@@ -3,16 +3,16 @@ from flask_session import Session
 from dbaccess import *
 import os
 
-application = Flask(__name__)
+app = Flask(__name__)
 sess = Session()
 
-@application.route("/")
+@app.route("/")
 def home():
     if "userid" in session:
         return render_template("home.html", signedin=True, id=session['userid'], name=session['name'], type=session['type'])
     return render_template("home.html", signedin=False)
 
-@application.route("/signup/", methods = ["POST", "GET"])
+@app.route("/signup/", methods = ["POST", "GET"])
 def signup():
     if request.method == "POST":
         data = request.form
@@ -22,7 +22,7 @@ def signup():
         return render_template("signup.html", ok=ok)
     return render_template("signup.html", ok=True)
 
-@application.route("/login/", methods=["POST", "GET"])
+@app.route("/login/", methods=["POST", "GET"])
 def login():
     if request.method == "POST":
         data = request.form
@@ -35,14 +35,14 @@ def login():
         return render_template("login.html", err=True)
     return render_template("login.html", err=False)
 
-@application.route("/logout/")
+@app.route("/logout/")
 def logout():
     session.pop('userid')
     session.pop('name')
     session.pop('type')
     return redirect(url_for('home'))
 
-@application.route("/viewprofile/<id>/")
+@app.route("/viewprofile/<id>/")
 def view_profile(id):
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -70,7 +70,7 @@ def view_profile(id):
                             category=(None if profile_type=="Customer" else categories),
                             my=my)
 
-@application.route("/viewprofile/", methods=["POST", "GET"])
+@app.route("/viewprofile/", methods=["POST", "GET"])
 def profile():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -83,7 +83,7 @@ def profile():
 
     return render_template('profiles.html', id=session['userid'], type=type, after_srch=False)
 
-@application.route("/viewprofile/<id>/sellerproducts/")
+@app.route("/viewprofile/<id>/sellerproducts/")
 def seller_products(id):
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -97,7 +97,7 @@ def seller_products(id):
     res = get_seller_products(id)
     return render_template('seller_products.html', name=name, id=id, results=res)
 
-@application.route("/editprofile/", methods=["POST", "GET"])
+@app.route("/editprofile/", methods=["POST", "GET"])
 def edit_profile():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -124,7 +124,7 @@ def edit_profile():
                                 country=det[8],
                                 zip=det[9])
 
-@application.route("/changepassword/", methods=["POST", "GET"])
+@app.route("/changepassword/", methods=["POST", "GET"])
 def change_password():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -144,7 +144,7 @@ def change_password():
                 return redirect(url_for('home'))
     return render_template("change_password.html", check=check, equal=equal)
 
-@application.route("/sell/", methods=["POST", "GET"])
+@app.route("/sell/", methods=["POST", "GET"])
 def my_products():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -160,7 +160,7 @@ def my_products():
         return render_template('my_products.html', categories=categories, after_srch=True, results=results)
     return render_template("my_products.html", categories=categories, after_srch=False)
 
-@application.route("/sell/addproducts/", methods=["POST", "GET"])
+@app.route("/sell/addproducts/", methods=["POST", "GET"])
 def add_products():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -172,7 +172,7 @@ def add_products():
         return redirect(url_for('my_products'))
     return render_template("add_products.html")
 
-@application.route("/viewproduct/")
+@app.route("/viewproduct/")
 def view_prod():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -181,7 +181,7 @@ def view_prod():
     if session['type']=="Customer":
         return redirect(url_for('buy'))
 
-@application.route("/viewproduct/<id>/")
+@app.route("/viewproduct/<id>/")
 def view_product(id):
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -194,7 +194,7 @@ def view_product(id):
         abort(403)
     return render_template('view_product.html', type=type, name=name, quantity=quantity, category=category, cost_price=cost_price, sell_price=sell_price, sell_id=sellID, sell_name=sell_name, desp=desp, prod_id=id)
 
-@application.route("/viewproduct/<id>/edit/", methods=["POST", "GET"])
+@app.route("/viewproduct/<id>/edit/", methods=["POST", "GET"])
 def edit_product(id):
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -212,7 +212,7 @@ def edit_product(id):
         return redirect(url_for('view_product', id=id))
     return render_template('edit_product.html', prodID=id, name=name, qty=quantity, category=category, price=cost_price, desp=desp)
 
-@application.route("/buy/", methods=["POST", "GET"])
+@app.route("/buy/", methods=["POST", "GET"])
 def buy():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -227,7 +227,7 @@ def buy():
         return render_template('search_products.html', after_srch=True, results=results)
     return render_template('search_products.html', after_srch=False)
 
-@application.route("/buy/<id>/", methods=['POST', 'GET'])
+@app.route("/buy/<id>/", methods=['POST', 'GET'])
 def buy_product(id):
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -243,7 +243,7 @@ def buy_product(id):
         return redirect(url_for('buy_confirm', total=total, quantity=data['qty'], id=id))
     return render_template('buy_product.html', name=name, category=category, desp=desp, quantity=quantity, price=sell_price)
 
-@application.route("/buy/<id>/confirm/", methods=["POST", "GET"])
+@app.route("/buy/<id>/confirm/", methods=["POST", "GET"])
 def buy_confirm(id):
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -267,7 +267,7 @@ def buy_confirm(id):
     items = ((name, qty, total),)
     return render_template('buy_confirm.html', items=items, total=total)
 
-@application.route("/buy/myorders/")
+@app.route("/buy/myorders/")
 def my_orders():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -276,7 +276,7 @@ def my_orders():
     res = cust_orders(session['userid'])
     return render_template('my_orders.html', orders=res)
 
-@application.route("/cancel/<orderID>/")
+@app.route("/cancel/<orderID>/")
 def cancel_order(orderID):
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -295,7 +295,7 @@ def cancel_order(orderID):
     change_order_status(orderID, "CANCELLED")
     return redirect(url_for('my_orders')) if session['type']=="Customer" else redirect(url_for('new_orders'))
 
-@application.route("/dispatch/<orderID>/")
+@app.route("/dispatch/<orderID>/")
 def dispatch_order(orderID):
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -314,7 +314,7 @@ def dispatch_order(orderID):
     change_order_status(orderID, "DISPACHED")
     return redirect(url_for('new_orders'))
 
-@application.route("/recieve/<orderID>/")
+@app.route("/recieve/<orderID>/")
 def recieve_order(orderID):
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -333,7 +333,7 @@ def recieve_order(orderID):
     change_order_status(orderID, "RECIEVED")
     return redirect(url_for('my_purchases'))
 
-@application.route("/buy/purchases/")
+@app.route("/buy/purchases/")
 def my_purchases():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -342,7 +342,7 @@ def my_purchases():
     res = cust_purchases(session['userid'])
     return render_template('my_purchases.html', purchases=res)
 
-@application.route("/sell/neworders/")
+@app.route("/sell/neworders/")
 def new_orders():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -351,7 +351,7 @@ def new_orders():
     res = sell_orders(session['userid'])
     return render_template('new_orders.html', orders=res)
 
-@application.route("/sell/sales/")
+@app.route("/sell/sales/")
 def my_sales():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -360,7 +360,7 @@ def my_sales():
     res = sell_sales(session['userid'])
     return render_template('my_sales.html', sales=res)
 
-@application.route("/buy/cart/", methods=["POST", "GET"])
+@app.route("/buy/cart/", methods=["POST", "GET"])
 def my_cart():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -377,7 +377,7 @@ def my_cart():
         return redirect("/buy/cart/confirm/")
     return render_template('my_cart.html', cart=cart)
 
-@application.route("/buy/cart/confirm/", methods=["POST", "GET"])
+@app.route("/buy/cart/confirm/", methods=["POST", "GET"])
 def cart_purchase_confirm():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -397,7 +397,7 @@ def cart_purchase_confirm():
         total += float(i[2])*int(i[3])
     return render_template('buy_confirm.html', items=items, total=total)
 
-@application.route("/buy/cart/<prodID>/")
+@app.route("/buy/cart/<prodID>/")
 def add_to_cart(prodID):
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -406,7 +406,7 @@ def add_to_cart(prodID):
     add_product_to_cart(prodID, session['userid'])
     return redirect(url_for('view_product', id=prodID))
 
-@application.route("/buy/cart/delete/")
+@app.route("/buy/cart/delete/")
 def delete_cart():
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -415,7 +415,7 @@ def delete_cart():
     empty_cart(session['userid'])
     return redirect(url_for('my_cart'))
 
-@application.route("/buy/cart/delete/<prodID>/")
+@app.route("/buy/cart/delete/<prodID>/")
 def delete_prod_cart(prodID):
     if 'userid' not in session:
         return redirect(url_for('home'))
@@ -425,9 +425,9 @@ def delete_prod_cart(prodID):
     return redirect(url_for('my_cart'))
 
 
-application.config['SECRET_KEY'] = os.urandom(17)
-application.config['SESSION_TYPE'] = 'filesystem'
-application.config['TEMPLATES_AUTO_RELOAD'] = True
-sess.init_app(application)
+app.config['SECRET_KEY'] = os.urandom(17)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+sess.init_app(app)
 if __name__=="__main__":
-	application.run(debug=True,host="0.0.0.0",port=5000)
+	app.run(debug=True,host="0.0.0.0",port=5000)
